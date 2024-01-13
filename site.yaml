@@ -8,3 +8,8 @@
   hosts: dc
   roles:
     - dnsmasq
+
+- name: Configure nut ups
+  hosts: nut
+  roles:
+    - nut

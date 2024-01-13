@@ -2,6 +2,7 @@ all:
   hosts:
     ansible-test:
     dc:
+    nut:
   vars:
     ansible_connection: ssh
     ansible_user: fatvod
