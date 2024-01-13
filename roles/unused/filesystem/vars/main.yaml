@@ -1,0 +1,8 @@
+---
+fsx_param_store_prefix: /rde/fsx
+efs_param_store_prefix: /rde/efs
+compbio_res_name: lustre_compbio_res.corp.local
+compbio_res_mount_name: 6m7v5bmv
+compbio_val_name: lustre_compbio_val.corp.local
+compbio_val_mount_name: thxf7bmv
+rclone_conf_path: /root/.config/rclone/rclone.conf

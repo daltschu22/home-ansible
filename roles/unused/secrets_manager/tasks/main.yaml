@@ -1,0 +1,4 @@
+---
+- name: lookup secretsmanager secret
+  set_fact:
+    "{{ variable_name }}": "{{ lookup('amazon.aws.secretsmanager_secret', secret_id, region='us-east-1') }}"

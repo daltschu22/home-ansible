@@ -1,0 +1,8 @@
+---
+- name: Allow 'fatvod' user to sudo without a password
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^fatvod'
+    line: 'fatvod ALL=(ALL) NOPASSWD:ALL'
+    validate: 'visudo -cf %s'

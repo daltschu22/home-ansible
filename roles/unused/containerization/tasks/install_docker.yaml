@@ -1,0 +1,37 @@
+---
+- name: Add Docker CE repository
+  ansible.builtin.command:
+    cmd: "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo"
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+
+- name: Install required packages for docker installation
+  ansible.builtin.package:
+    name:
+      - containerd.io
+      - docker-ce
+      - docker-ce-cli
+    state: latest
+
+- name: Start and enable Docker service
+  ansible.builtin.systemd_service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Setup docker prune cron
+  include_role:
+    name: cron
+  vars:
+    cron_jobs:
+      - name: "docker_prune"
+        job: "{{ cron_scripts_path }}/docker_prune.sh >> /var/log/fmi-docker-prune.log 2>&1"
+        special_time: "daily"
+
+- name: Copy prune script
+  ansible.builtin.template:
+    src: docker_prune.j2
+    dest: "{{ cron_scripts_path }}/docker_prune.sh"
+    owner: root
+    group: root
+    mode: '0755'

@@ -1,0 +1,35 @@
+---
+- name: Install nut
+  ansible.builtin.package:
+    name: nut
+    state: present
+
+- name: Apply nut conf
+  ansible.builtin.template:
+    src: nut.conf
+    dest: /etc/nut/nut.conf
+
+- name: Apply ups conf
+  ansible.builtin.template:
+    src: ups.conf
+    dest: /etc/nut/ups.conf
+
+- name: Apply upsd conf
+  ansible.builtin.template:
+    src: upsd.conf
+    dest: /etc/nut/upsd.conf
+
+- name: Apply upsd.users conf
+  ansible.builtin.template:
+    src: upsd.users
+    dest: /etc/nut/upsd.users
+
+- name: Apply upsmon conf
+  ansible.builtin.template:
+    src: upsmon.conf
+    dest: /etc/nut/upsmon.conf
+
+- name: Restart NUT services
+  ansible.builtin.service:
+    name: nut-server
+    state: restarted

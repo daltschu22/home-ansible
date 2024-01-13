@@ -1,0 +1,15 @@
+---
+- name: Set ECR_ACCOUNT_ID environment variable
+  ansible.builtin.copy:
+    content: |
+      # Force the analysis pipeline to look for docker images in the EDP ECR repository
+      # instead of the the v1 core ECR repository
+      export ECR_ACCOUNT_ID=743755544772
+    dest: "/etc/profile.d/ecr_account_id.sh"
+    mode: '0644'
+
+- name: Add ChainLink client to PATH
+  copy:
+    dest: /etc/profile.d/add-chainlink-client-to-path.sh
+    content: 'export PATH=$PATH:{{ chainlink_client }}'
+    mode: '0644'

@@ -1,0 +1,5 @@
+---
+parseable: true
+skip_list:
+  - 'fqcn'
+  - 'var-naming[no-role-prefix]'

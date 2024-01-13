@@ -1,0 +1,44 @@
+---
+- name: Create directories required for rclone
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: directory
+    mode: '0755'
+  loop:
+    - '/opt/rclone/cache'
+    - '/root/.config/rclone'
+
+# rclone requires a config file. systemd runs mount units without any environment variables including PATH or HOME.
+# This means --config should be explicitly provided as absolute paths via rclone arguments
+- name: Create config file and populate with values
+  ansible.builtin.template:
+    src: 'rclone.conf'
+    dest: '{{ rclone_conf_path }}'
+    mode: 0755
+
+- name: Create directories to mount rclone filesystems
+  ansible.builtin.file:
+    path: "/{{ item.host_path }}"
+    state: directory
+  loop: "{{ mount_rclone_filesystems | default([]) }}"
+
+- name: Create systemd service file to mount filesytems using rclone
+  ansible.builtin.template:
+    src: '{{ item.name }}.mount'
+    dest: '/etc/systemd/system/{{ item.name }}.mount'
+    mode: 0644
+  vars:
+    bucket_name: "{{ item.bucket_name }}"
+    host_path: "{{ item.host_path }}"
+    bucket_path: "{{ item.bucket_path }}"
+    name: "{{ item.name }}"
+  loop: "{{ mount_rclone_filesystems | default([]) }}"
+
+- name: Start rclone service
+  ansible.builtin.systemd_service:
+    name: "{{ item.name }}.mount"
+    enabled: true
+    masked: false
+    daemon_reload: true
+    state: started
+  loop: "{{ mount_rclone_filesystems | default([]) }}"

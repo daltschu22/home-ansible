@@ -1,0 +1,3 @@
+---
+## Chainlink vars
+chainlink_client: /apps/chainlink/client/res1/python/release/3.9.7/bin

@@ -1,0 +1,4 @@
+---
+## Docker prune vars
+system_prune_filter: 168  # Filter for system prune in hours
+volume_prune_filter: 168  # Filter for volume prune in hours

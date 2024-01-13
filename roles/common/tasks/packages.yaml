@@ -1,0 +1,18 @@
+---
+# Defined in the packages role vars file for all hosts
+- name: Install base packages
+  ansible.builtin.package:
+    name: "{{ common_base_packages }}"
+    state: present
+
+# host_packages can be set in the host_vars file for the specific host
+# group_packages can be set in the group_vars file for the specific group
+- name: Install host and group specific packages
+  ansible.builtin.package:
+    name: "{{ host_packages | default([]) + group_packages | default([]) }}"
+    state: present
+
+- name: Upgrade all packages
+  ansible.builtin.package:
+    name: '*'
+    state: latest # noqa package-latest

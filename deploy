@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Check if the first argument is "-k"
+if [ "$1" == "-k" ]; then
+    ansible-playbook -i inventories/hosts site.yaml -K
+else
+    ansible-playbook -i inventories/hosts site.yaml
+fi

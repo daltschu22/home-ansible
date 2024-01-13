@@ -1,0 +1,9 @@
+[Unit]
+Description=Mount the {{ name }} bucket, {{ bucket_name }}, at {{ host_path }} using rclone
+[Mount]
+Type=rclone
+What=s3://{{bucket_name}}/{{ bucket_path }}
+Where={{ host_path }}
+Options=ro,daemon,allow_other,_netdev,log-file=/var/log/rclone_references.log,config={{ rclone_conf_path }},vfs-cache-poll-interval=10s,vfs-cache-mode=full,vfs-cache-max-size=50G,vfs-cache-max-age=24h0m0s,cache-dir=/opt/rclone/cache/,buffer-size=1M,vfs-read-chunk-size-limit=128Mi,vfs-read-chunk-size=128Mi,vfs-read-ahead=10G,dir-cache-time=1h0m0s,use-mmap,low-level-retries=10,retries=10,retries-sleep=500ms
+[Install]
+WantedBy=default.target

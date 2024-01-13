@@ -1,0 +1,61 @@
+---
+- name: Check if instance type is 'i' family
+  set_fact:
+    is_ifamily: true
+  when: metadata_facts['ansible_facts']['ansible_ec2_instance_type'] is match("^i.*")
+
+- name: Configure NVME drive for /var/lib/docker
+  include_tasks: nvme_docker.yaml
+  # This step will be skipped if nvme_docker is set to false or if this is not an i* instance type
+  when: ((nvme_docker is not defined) or (nvme_docker | bool)) and (is_ifamily | default(false))
+
+- name: Mount file systems
+  include_tasks: mount_file_systems.yaml
+
+# Mount filesystems using goofys
+- name: Mount goofys file systems
+  include_tasks: mount_goofys_filesystems.yaml
+
+# Mount filesystem using rclone
+- name: Mount filesystem using rclone
+  include_tasks: mount_rclone_filesystems.yaml
+
+# Only add a directory for Chainlink artifacts when needing to deploy to /apps (rw on apps mount)
+- name: Add directory for Chainlink artifacts
+  ansible.builtin.file:
+    path: "/opt/chainlink/versions"
+    state: directory
+    mode: '777'
+  when: (apps_efs_perms | default("ro")) == "rw"
+
+# The tasks that create symlinks should be called after all file systems are already mounted
+- name: Create /compbio symlinks to /pipeline/software
+  ansible.builtin.file:
+    src: '/pipeline/software'
+    dest: '/compbio/software'
+    owner: pipeline_production
+    group: compbio
+    follow: false
+    state: link
+  when: (mount_config.pipeline_software.state | default("unmounted")) == "mounted"
+
+- name: Create /compbio symlinks to /pipeline/versions
+  ansible.builtin.file:
+    src: '/pipeline/versions'
+    dest: '/compbio/versions'
+    owner: pipeline_production
+    group: compbio
+    follow: false
+    state: link
+  when: (mount_config.pipeline_versions.state | default("unmounted")) == "mounted"
+
+- name: Create /compbio symlinks to /pipeline/references
+  ansible.builtin.file:
+    src: '/pipeline/references'
+    dest: '/compbio/references'
+    owner: pipeline_production
+    group: compbio
+    follow: false
+    state: link
+  when: (mount_rclone_filesystems is defined) and mount_rclone_filesystems | selectattr("host_path", "equalto", "/pipeline/references") is defined
+

@@ -1,0 +1,11 @@
+---
+- name: Gather EC2 metadata facts
+  amazon.aws.ec2_metadata_facts:
+  register: metadata_facts
+
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Gather service facts
+  ansible.builtin.service_facts:

@@ -1,0 +1,38 @@
+---
+## Set the hostname to what we have it defined as in the ansible hosts
+- name: Set a hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+# allow password logins
+- name: Allow password logins
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+    state: present
+    backup: yes
+  notify: restart_sshd
+
+- authorized_key:
+    user: fatvod
+    state: present
+    key: "{{ lookup('file', '~/.ssh/id_ed25519.pub') }}"
+
+
+# Install base packages as well as host specific packages
+- name: Install packages
+  include_tasks: packages.yaml
+
+- name: Configure sudoers
+  include_tasks: sudoers.yaml
+
+
+
+
+## The way handlers work is you cant "call" them multiple times during a run, they run once per "play".
+## Flushing the handlers forces the handlers to be able to run again.
+## We do this at the end of the configuration to ensure that services such as sshd are restarted.
+## https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_handlers.html#controlling-when-handlers-run
+- name: Flush Handlers
+  meta: flush_handlers

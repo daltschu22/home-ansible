@@ -1,0 +1,10 @@
+---
+- name: Install docker
+  include_tasks: install_docker.yaml
+
+# Allow all members of the compbio group to run docker commands without sudo access
+- name: Change the group of /var/run/docker.sock to compbio
+  file:
+    path: /var/run/docker.sock
+    group: compbio
+    state: file

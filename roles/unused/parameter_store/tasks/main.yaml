@@ -1,0 +1,4 @@
+---
+- name: lookup parameters
+  set_fact:
+    "{{ variable_name }}": "{{ lookup('amazon.aws.ssm_parameter', parameter_key, region='us-east-1') }}"

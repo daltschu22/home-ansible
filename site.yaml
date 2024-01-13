@@ -1,0 +1,10 @@
+---
+- name: Run the common role across all hosts in the inventory
+  hosts: all
+  roles:
+    - common
+
+- name: Configure dnsmasq
+  hosts: dc
+  roles:
+    - dnsmasq

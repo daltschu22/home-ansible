@@ -1,0 +1,10 @@
+---
+## Loop through the host_mounts variable and mount
+- name: Mount volumes
+  ansible.posix.mount:
+    src: "{{ item.src }}"
+    path: "{{ item.path }}"
+    opts: "{{ item.opts }}"
+    fstype: "{{ item.fstype }}"
+    state: "{{ item.state }}"
+  loop: "{{ host_mounts | default([]) }}"

@@ -1,0 +1,81 @@
+---
+- name: Get parameter store values
+  with_items:
+    - 'pipeline_dns_name'
+    - 'pipeline_mount_name'
+    - 'pipeline_mount_path'
+    - 'res_sandbox_dns_name'
+    - 'res_sandbox_mount_name'
+    - 'res_sandbox_mount_path'
+  include_role:
+    name: parameter_store
+  vars:
+    variable_name: "{{ item }}"
+    parameter_key: "{{ fsx_param_store_prefix }}/{{ item }}"
+
+- name: get parameter store values
+  include_role:
+    name: parameter_store
+  vars:
+    variable_name: "apps_dns_name"
+    parameter_key: "{{ efs_param_store_prefix }}/apps_dns_name"
+
+- name: Create /compbio directory
+  ansible.builtin.file:
+    path: /compbio
+    owner: pipeline_production
+    group: compbio
+    mode: "0775"
+    state: directory
+
+## Mount filesystems
+- name: Mount filesystems and plugins
+  include_tasks: mounts.yaml
+  vars:
+    host_mounts:
+      - path: '/res-sandbox'
+        src: '{{ res_sandbox_dns_name }}@tcp:/{{ res_sandbox_mount_name }}{{ res_sandbox_mount_path }}'
+        opts: "{{ mount_config.res_sandbox.permissions | default('ro') }},noatime,flock,_netdev"
+        fstype: 'lustre'
+        state: "{{ mount_config.res_sandbox.state | default('unmounted') }}"
+      - path: '/pipeline/versions'
+        src: '{{ pipeline_dns_name }}@tcp:/{{ pipeline_mount_name }}{{ pipeline_mount_path  }}/versions'
+        opts: "{{ mount_config.pipeline_versions.permissions | default('ro') }},noatime,flock,_netdev"
+        fstype: 'lustre'
+        state: "{{ mount_config.pipeline_software.state | default('unmounted') }}"
+      - path: '/pipeline/software'
+        src: '{{ pipeline_dns_name }}@tcp:/{{ pipeline_mount_name }}{{ pipeline_mount_path }}/software'
+        opts: "{{ mount_config.pipeline_software.permissions | default('ro') }},noatime,flock,_netdev"
+        fstype: 'lustre'
+        state: "{{ mount_config.pipeline_software.state | default('unmounted') }}"
+      - path: '/pipeline/config'
+        src: '{{ pipeline_dns_name }}@tcp:/{{ pipeline_mount_name }}{{ pipeline_mount_path  }}/config'
+        opts: "{{ mount_config.pipeline_config.permissions | default('ro') }},noatime,flock,_netdev"
+        fstype: 'lustre'
+        state: "{{ mount_config.pipeline_config.state | default('unmounted') }}"
+      - path: '/compbio_res'
+        src: '{{ compbio_res_name }}@tcp:/{{ compbio_res_mount_name }}'
+        opts: "{{ mount_config.compbio_res.permissions | default('ro') }},noatime,flock,_netdev"
+        fstype: 'lustre'
+        state: "{{ mount_config.compbio_res.state | default('unmounted') }}"
+      - path: '/compbio_val'
+        src: '{{ compbio_val_name }}@tcp:/{{ compbio_val_mount_name }}'
+        opts: "{{ mount_config.compbio_val.permissions | default('ro') }},noatime,flock,_netdev"
+        fstype: 'lustre'
+        state: "{{ mount_config.compbio_val.state | default('unmounted') }}"
+      - path: '/apps'
+        src: '{{ apps_dns_name }}:/'
+        opts: "nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport,{{ mount_config.apps.permissions | default('ro') }}"
+        fstype: 'nfs'
+        state: "{{ mount_config.apps.state | default('unmounted') }}"
+      - path: '/plugins'
+        src: 'gpprod-plugins.efs.corp.local:/'
+        opts: "nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport,{{ mount_config.plugins.permissions | default('ro') }}"
+        fstype: 'nfs'
+        state: "{{ mount_config.plugins.state | default('unmounted') }}"
+
+## Loop through the additional_host_mounts variable and mount
+- name: Mount additional volumes
+  include_tasks: mounts.yaml
+  vars:
+    host_mounts: "{{ additional_host_mounts | default([]) }}"

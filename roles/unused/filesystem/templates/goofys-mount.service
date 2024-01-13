@@ -1,0 +1,12 @@
+[Unit]
+Description=Service to mount the {{ name }} bucket, {{ bucket_name }}, at {{ host_path }} using goofys
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/usr/local/bin/goofys -f --type-cache-ttl 60s --stat-cache-ttl 60s --file-mode 0555 --dir-mode 0555 -o ro -o allow_other {{ bucket_name }} {{ host_path }}
+[Install]
+WantedBy=multi-user.target

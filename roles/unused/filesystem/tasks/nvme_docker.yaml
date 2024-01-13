@@ -1,0 +1,40 @@
+---
+# If the AWS instance is a nitro type instance then EBS volumes are exposed as NVMe block devices
+# so it's a little difficult to differentiate the attached NVMe block device that we want to use
+# for docker from the EBS NVMe block devices. First we'll get a list of NVMe block devices using
+# the nvme list command
+- name: Get list of NVMe block devices
+  ansible.builtin.shell: nvme list --output-format=json | jq -r '.Devices[] | .DevicePath'
+  register: nvme_devices
+  changed_when: false
+
+# And then we use nvme id-ctrl to identify EBS block devices. An EBS block device will have a
+# model number (mn) of Amazon Elastic Block Store
+- name: Identify NVMe devices
+  ansible.builtin.shell: >
+    nvme id-ctrl --output-format=json -v {{ item }} |
+    jq -r 'if (.mn | contains("Amazon Elastic Block Store")) then empty else .mn end'
+  with_items: "{{ nvme_devices.stdout_lines }}"
+  register: nvme_results
+
+# Get the first Non-EBE NVMe Block device. And use that with docker.
+# TODO: Some large i3 instance types have multiple attached NVMe block devices. We currently only
+# use the first one.
+- name: Set non-EBS device fact
+  ansible.builtin.set_fact:
+    non_ebs_device: "{{ (nvme_results.results | selectattr('stdout', 'truthy') | map(attribute='item') | list | first) }}"
+
+- name: Create filesystem
+  community.general.filesystem:
+    fstype: xfs
+    dev: "{{ non_ebs_device }}"
+
+- name: Mount NVME drive for /var/lib/docker
+  include_tasks: mounts.yaml
+  vars:
+    host_mounts:
+      - src: '{{ non_ebs_device }}'
+        path: '/var/lib/docker'
+        opts: 'rw,relatime,attr2,inode64,noquota,nofail'
+        fstype: 'xfs'
+        state: 'mounted'

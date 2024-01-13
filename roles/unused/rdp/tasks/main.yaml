@@ -1,0 +1,51 @@
+---
+- name: Enable PowerTools repo
+  community.general.ini_file:
+    path:       /etc/yum.repos.d/Rocky-PowerTools.repo
+    section:    powertools
+    option:     enabled
+    value:      "1"
+    create:     no
+
+- name: Enable lightdm repository via copr
+  ansible.builtin.command: dnf copr enable stenstorp/lightdm -y
+  args:
+    creates: /etc/yum.repos.d/_copr:copr.fedorainfracloud.org:stenstorp:lightdm.repo
+
+# These packages are required to enable the XFCE desktop environment
+- name: Install XFCE desktop environment and required packages
+  package:
+    name:
+      - "@xfce"
+      - lightdm
+      - xrdp
+    state: present
+
+# Disable the gnome display manager in favor of lightdm
+- name: Disable gdm
+  ansible.builtin.systemd:
+    name: gdm
+    enabled: false
+    state: stopped
+
+# Enable lightdm as our X display manager
+- name: Enable lightdm
+  ansible.builtin.systemd:
+    name: lightdm
+    state: started
+    enabled: true
+
+# xrdp is used to manage connections to the host
+- name: Enable xrdp
+  ansible.builtin.systemd:
+    name: xrdp
+    state: started
+    enabled: true
+
+# This file tells vnc to use xfce as the desktop environment
+- name: Copy session into skel
+  ansible.builtin.copy:
+    dest: /etc/skel/.xsession
+    content: |
+      xfce4-session
+    mode: '0711'

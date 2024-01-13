@@ -1,0 +1,4 @@
+- name: Restart NUT
+  ansible.builtin.service:
+    name: nut-server
+    state: restarted

@@ -1,0 +1,26 @@
+---
+- name: Install base packages
+  ansible.builtin.package:
+    name: dnsmasq
+    state: present
+
+- name: Backup dnsmasq.conf
+  command: cp /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
+  args:
+    creates: /etc/dnsmasq.conf.orig
+
+- name: Apply custom dnsmasq configuration
+  ansible.builtin.template:
+    src: dnsmasq.conf.j2
+    dest: /etc/dnsmasq.conf
+
+- name: Configure /etc/hosts
+  ansible.builtin.template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: Restart dnsmasq
+  systemd:
+    name: dnsmasq
+    state: restarted
+    enabled: yes

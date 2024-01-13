@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+now=$(date)
+
+docker=$(which docker)
+if [[ -z "$docker" ]]; then
+    echo "Docker not found. Exiting."
+    exit 1
+fi
+
+# The number of hours to use as the filter, set in ansible vars
+system_prune_filter="{{ system_prune_filter }}"
+volume_prune_filter="{{ volume_prune_filter }}"
+
+# Run system prune
+echo "Running system prune with filter of $system_prune_filter on $now"
+$docker system prune --all --force --filter "until=${system_prune_filter}h"
+
+# Run volume prune
+volumes=$($docker volume ls --filter dangling=true --quiet)
+if [[ -z "$volumes" ]]; then
+    echo "  + No dangling volumes found"
+    exit 0
+fi
+
+for volume in $volumes; do
+    if [[ -z "$volume" ]]; then
+        continue
+    fi
+
+    echo "  + Checking creation date for $volume"
+    # This line requires a raw filter because the curly braces are for go templating and not jinja
+    created_at=$($docker inspect "$volume" --format {% raw %}'{{.CreatedAt}}'{% endraw %} | sed 's/\.[0-9]*//')
+    current_time=$(date +%s)
+    created_time=$(date -d"$created_at" +%s)
+    time_difference=$((current_time - created_time))
+    hours_since_created=$((time_difference / 3600))
+    echo "  + Created $hours_since_created hours ago"
+    if [[ "$hours_since_created" -gt $volume_prune_filter ]]; then
+        echo "  + Deleting volume $volume"
+        $docker volume rm "$volume" --force
+    fi
+done

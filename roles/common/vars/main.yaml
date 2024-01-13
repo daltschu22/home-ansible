@@ -1,0 +1,16 @@
+---
+## List of packages that get installed on all hosts
+common_base_packages:
+  - git
+  - htop
+  - iftop
+  - iotop
+  - jq
+  - lsof
+  - nano
+  - ncdu
+  - ripgrep
+  - screen
+  - unzip
+  - vim
+  - wget
