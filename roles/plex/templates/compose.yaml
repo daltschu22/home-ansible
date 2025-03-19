@@ -1,0 +1,64 @@
+---
+services:
+
+  nzbget:
+    image: nzbgetcom/nzbget:latest
+    container_name: nzbget
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+      - NZBGET_USER=nzbget     #optional
+      - NZBGET_PASS=tegbzn6789 #optional
+    volumes:
+      - /path/to/config:/config
+      - /path/to/downloads:/downloads #optional
+    ports:
+      - 6789:6789
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr:4.0.0
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - TZ=EST # Specify a timezone to use
+      - PUID=1000 # User ID to run as
+      - PGID=1000 # Group ID to run as
+    volumes:
+      - /path/to/data:/config
+      - /path/to/tvseries:/tv #optional
+      - /path/to/downloadclient-downloads:/downloads #optional
+    ports:
+      - 8989:8989/tcp # Web UI
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+    volumes:
+      - /path/to/data:/config
+      - /path/to/movies:/movies #optional
+      - /path/to/downloadclient-downloads:/downloads #optional
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=EST
+      - VERSION=docker
+      - PLEX_CLAIM= #optional
+    volumes:
+      - /path/to/library:/config
+      - /path/to/tvseries:/tv
+      - /path/to/movies:/movies
+    restart: unless-stopped

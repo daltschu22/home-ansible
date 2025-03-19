@@ -1,0 +1,23 @@
+[Unit]
+Description=Home Assistant Docker Container
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=simple
+Restart=unless-stopped
+RestartSec=5
+ExecStartPre=-/usr/bin/docker stop homeassistant
+ExecStartPre=-/usr/bin/docker rm homeassistant
+ExecStart=/usr/bin/docker run --name homeassistant \
+  --privileged \
+  --restart=no \
+  -e TZ={{ homeassistant_timezone }} \
+  -v {{ homeassistant_config_path }}:/config \
+  -v /run/dbus:/run/dbus:ro \
+  --network=host \
+  {{ homeassistant_image }}
+ExecStop=/usr/bin/docker stop homeassistant
+
+[Install]
+WantedBy=multi-user.target 

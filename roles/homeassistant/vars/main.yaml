@@ -1,0 +1,5 @@
+---
+# Home Assistant configuration
+homeassistant_config_path: /opt/homeassistant/config
+homeassistant_timezone: "America/New_York"  # Change this to your timezone
+homeassistant_image: "ghcr.io/home-assistant/home-assistant:stable" 

@@ -12,7 +12,7 @@
     name: "{{ host_packages | default([]) + group_packages | default([]) }}"
     state: present
 
-- name: Upgrade all packages
-  ansible.builtin.package:
-    name: '*'
-    state: latest # noqa package-latest
+# - name: Upgrade all packages
+#   ansible.builtin.package:
+#     name: '*'
+#     state: latest # noqa package-latest

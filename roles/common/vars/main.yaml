@@ -7,8 +7,11 @@ common_base_packages:
   - iotop
   - jq
   - lsof
+  - fpart
+  - fd-find
   - nano
   - ncdu
+  - nfs-common
   - ripgrep
   - screen
   - unzip

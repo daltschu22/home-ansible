@@ -1,8 +1,19 @@
 all:
   hosts:
     ansible-test:
+      ansible_host: ansible-test.daltschu
     dc:
+      ansible_host: dc.daltschu
     nut:
+      ansible_host: nut.daltschu
+    homeassistant:
+      ansible_host: homeassistant.daltschu
+      vars:
+        install_podman: true
+    sync:
+      ansible_host: sync.daltschu
+      vars:
+        install_podman: true
   vars:
     ansible_connection: ssh
     ansible_user: fatvod

@@ -1,0 +1,34 @@
+---
+- name: Ensure Docker is installed
+  ansible.builtin.package:
+    name: docker.io
+    state: present
+
+- name: Ensure Python Docker module is installed
+  ansible.builtin.package:
+    name: python3-docker
+    state: present
+
+- name: Create Home Assistant config directory
+  ansible.builtin.file:
+    path: "{{ homeassistant_config_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create Home Assistant systemd service
+  ansible.builtin.template:
+    src: homeassistant.service.j2
+    dest: /etc/systemd/system/homeassistant.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Home Assistant
+
+- name: Enable and start Home Assistant service
+  ansible.builtin.systemd:
+    name: homeassistant
+    enabled: yes
+    state: started
+    daemon_reload: yes 

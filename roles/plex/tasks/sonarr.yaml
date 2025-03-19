@@ -1,0 +1,19 @@
+---
+# Copy sonarr compose template
+- name: Copy sonarr compose template
+  template:
+    src: sonarr.yml.j2
+    dest: /opt/sonarr/sonarr.yml
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart sonarr
+
+# Run the compose
+- name: Run the compose
+  ansible.builtin.command: podman-compose -f /opt/sonarr/sonarr.yml up -d
+  args:
+    chdir: /opt/sonarr
+  notify:
+    - Restart sonarr

@@ -29,6 +29,7 @@
 
 - name: Configure podman
   include_tasks: podman.yaml
+  when: install_podman | default(false)
 
 ## The way handlers work is you cant "call" them multiple times during a run, they run once per "play".
 ## Flushing the handlers forces the handlers to be able to run again.
